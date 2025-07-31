@@ -5,38 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Defesa Combo</title>
     <style>
-        body {
+        /* Remove margens e garante que o body ocupe 100% da tela */
+        html, body {
             margin: 0;
-            text-align: center;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* 🔥 Impede scroll */
             background-color: #001b44;
             color: white;
             font-family: Arial, sans-serif;
         }
 
-        h1 { margin: 10px 0; font-size: 1.5em; }
-        h2 { margin: 5px 0 15px; font-size: 1em; }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        h1 {
+            margin: 5px 0;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        h2 {
+            margin: 5px 0 10px;
+            font-size: 0.9em;
+            text-align: center;
+        }
 
         canvas {
-            width: 100vw;   /* 100% da largura da viewport */
-            height: 70vh;   /* 70% da altura da viewport */
+            flex-shrink: 0;
+            width: 100vw;   /* Canvas ocupa largura total */
+            height: 60vh;   /* Canvas ocupa 60% da tela */
             max-width: 800px;
             max-height: 600px;
-            display: block;
-            margin: 0 auto;
             background: #001b44;
             border: 2px solid white;
+            display: block;
         }
 
         /* Controles para celular */
         #controls {
-            position: fixed;
-            bottom: 20px;
+            position: relative;
             width: 100%;
             display: flex;
-            justify-content: center;
             flex-direction: column;
             align-items: center;
             gap: 10px;
+            margin-top: 5px;
         }
 
         #controls button {
@@ -52,8 +70,9 @@
 
         #controls div { display: flex; gap: 10px; }
 
+        /* Esconde controles no PC */
         @media (min-width: 768px) {
-            #controls { display: none; } /* Esconde controles no PC */
+            #controls { display: none; }
         }
     </style>
 </head>
@@ -76,7 +95,6 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        // Variáveis globais
         let ursoSize = 80;
         let ursoX, ursoY;
         let velocidade = 5;
@@ -86,67 +104,48 @@
 
         // Imagens
         const ursoImg = new Image();
-        ursoImg.src = "Lucasimg2.png"; // coloque a imagem no mesmo diretório
-
+        ursoImg.src = "Lucasimg2.png";
         const hamburguerImg = new Image();
         hamburguerImg.src = "hamburguerimg.png";
-
         const vagalumeImg = new Image();
         vagalumeImg.src = "vagalumeimg.png";
 
-        // Função para ajustar o tamanho real do canvas conforme o CSS e criar/reajustar elementos
+        // Função de ajuste de tela e elementos
         function resize() {
-            // Usa o tamanho real do canvas do CSS (em pixels)
-            const width = canvas.clientWidth;
-            const height = canvas.clientHeight;
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
 
-            // Ajusta o tamanho do canvas para o tamanho exibido no CSS
-            canvas.width = width;
-            canvas.height = height;
+            ursoSize = canvas.width * 0.1;
+            hamburguerSize = canvas.width * 0.04;
+            velocidade = Math.max(3, ursoSize * 0.06);
 
-            // Ajusta tamanhos proporcionais dos elementos
-            ursoSize = width * 0.1;       // Urso com 10% da largura do canvas
-            hamburguerSize = width * 0.04; // Hambúrguer 4% da largura do canvas
-            velocidade = Math.max(3, ursoSize * 0.06); // velocidade proporcional, mínimo 3
-
-            // Inicializa posição do urso (se não estiver inicializado)
-            if (typeof ursoX === "undefined" || typeof ursoY === "undefined") {
-                ursoX = width / 2 - ursoSize / 2;
-                ursoY = height / 2 - ursoSize / 2;
+            if (typeof ursoX === "undefined") {
+                ursoX = canvas.width / 2 - ursoSize / 2;
+                ursoY = canvas.height / 2 - ursoSize / 2;
             } else {
-                // Limita o urso para não sair da tela
-                ursoX = Math.min(ursoX, width - ursoSize);
-                ursoY = Math.min(ursoY, height - ursoSize);
+                ursoX = Math.min(ursoX, canvas.width - ursoSize);
+                ursoY = Math.min(ursoY, canvas.height - ursoSize);
             }
 
-            // Se os hamburguers não existirem, cria com margens
             if (hamburguers.length === 0) {
                 for (let i = 0; i < 15; i++) {
                     hamburguers.push({
-                        x: Math.random() * (width - hamburguerSize * 2) + hamburguerSize,
-                        y: Math.random() * (height - hamburguerSize * 3) + hamburguerSize * 1.5
+                        x: Math.random() * (canvas.width - hamburguerSize * 2) + hamburguerSize,
+                        y: Math.random() * (canvas.height - hamburguerSize * 3) + hamburguerSize * 1.5
                     });
                 }
             } else {
-                // Ajusta a posição dos hamburguers existentes para não saírem da tela
                 hamburguers = hamburguers.map(h => ({
-                    x: Math.min(h.x, width - hamburguerSize),
-                    y: Math.min(h.y, height - hamburguerSize)
+                    x: Math.min(h.x, canvas.width - hamburguerSize),
+                    y: Math.min(h.y, canvas.height - hamburguerSize)
                 }));
             }
         }
 
-        // Desenhar tudo
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Hambúrgueres
             hamburguers.forEach(h => ctx.drawImage(hamburguerImg, h.x, h.y, hamburguerSize, hamburguerSize));
-
-            // Urso
             ctx.drawImage(ursoImg, ursoX, ursoY, ursoSize, ursoSize);
-
-            // Vitória
             if (vitoria) {
                 ctx.fillStyle = "yellow";
                 ctx.font = "30px Arial";
@@ -155,7 +154,6 @@
             }
         }
 
-        // Atualiza posições e lógica
         function update() {
             hamburguers = hamburguers.filter(h => {
                 const colide = ursoX < h.x + hamburguerSize &&
@@ -165,39 +163,30 @@
                 return !colide;
             });
             if (hamburguers.length === 0) vitoria = true;
-
-            // Limita o urso dentro do canvas
             ursoX = Math.max(0, Math.min(ursoX, canvas.width - ursoSize));
             ursoY = Math.max(0, Math.min(ursoY, canvas.height - ursoSize));
         }
 
-        // Loop do jogo
         function loop() {
             update();
             draw();
             requestAnimationFrame(loop);
         }
 
-        // Controles pelo teclado
-        window.addEventListener("keydown", (e) => {
+        window.addEventListener("keydown", e => {
             if (e.key === "ArrowLeft") ursoX -= velocidade;
             if (e.key === "ArrowRight") ursoX += velocidade;
             if (e.key === "ArrowUp") ursoY -= velocidade;
             if (e.key === "ArrowDown") ursoY += velocidade;
         });
 
-        // Controles pelo celular
         document.getElementById("up").addEventListener("click", () => ursoY -= velocidade * 5);
         document.getElementById("down").addEventListener("click", () => ursoY += velocidade * 5);
         document.getElementById("left").addEventListener("click", () => ursoX -= velocidade * 5);
         document.getElementById("right").addEventListener("click", () => ursoX += velocidade * 5);
 
-        // Evento resize para ajustar canvas e elementos
-        window.addEventListener("resize", () => {
-            resize();
-        });
+        window.addEventListener("resize", resize);
 
-        // Inicializa
         resize();
         loop();
     </script>
