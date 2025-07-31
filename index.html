@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Defesa Combo</title>
     <style>
         body {
@@ -74,19 +74,21 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        canvas.width = window.innerWidth > 800 ? 800 : window.innerWidth - 20;
-        canvas.height = window.innerHeight > 600 ? 600 : window.innerHeight - 150;
+        // Tamanhos proporcionais em relação ao canvas
+        const ursoSizeRatio = 0.1;        // Urso com 10% da largura do canvas
+        const hamburguerSizeRatio = 0.04; // Hambúrguer 4% da largura do canvas
 
-        const ursoSize = 80;
-        let ursoX = 100, ursoY = 100;
-        const velocidade = 5;
-        const hamburguerSize = 30;
+        let ursoSize, hamburguerSize;
+        let ursoX, ursoY;
+        const velocidadeBase = 5;  // base de velocidade em pixels (ajustado depois)
+
+        let velocidade;            // velocidade ajustada após resize
         let hamburguers = [];
         let vitoria = false;
 
         // Imagens
         const ursoImg = new Image();
-        ursoImg.src = "Lucasimg2.png"; // coloque a imagem no mesmo diretório
+        ursoImg.src = "Lucasimg2.png";
 
         const hamburguerImg = new Image();
         hamburguerImg.src = "hamburguerimg.png";
@@ -94,13 +96,48 @@
         const vagalumeImg = new Image();
         vagalumeImg.src = "vagalumeimg.png";
 
-        // Criar hambúrgueres
-        for (let i = 0; i < 15; i++) {
-            hamburguers.push({
-                x: Math.random() * (canvas.width - 50) + 25,
-                y: Math.random() * (canvas.height - 100) + 75
-            });
+        // Função para redimensionar canvas e recalcular tudo
+        function resize() {
+            // Ajusta o tamanho do canvas, limitando a um máximo de 800x600, ou ao tamanho da janela
+            canvas.width = window.innerWidth > 800 ? 800 : window.innerWidth - 20;
+            canvas.height = window.innerHeight > 600 ? 600 : window.innerHeight - 150;
+
+            // Atualiza tamanhos relativos
+            ursoSize = canvas.width * ursoSizeRatio;
+            hamburguerSize = canvas.width * hamburguerSizeRatio;
+
+            // Ajusta velocidade proporcional ao tamanho do urso (para parecer igual em qualquer tela)
+            velocidade = Math.max(3, ursoSize * 0.06); // um valor proporcional mas com mínimo de 3
+
+            // Se ursoX e ursoY não existirem (início do jogo), centraliza o urso
+            if (typeof ursoX === "undefined" || typeof ursoY === "undefined") {
+                ursoX = canvas.width / 2 - ursoSize / 2;
+                ursoY = canvas.height / 2 - ursoSize / 2;
+            } else {
+                // Garante que o urso não fique fora da tela após resize
+                ursoX = Math.min(ursoX, canvas.width - ursoSize);
+                ursoY = Math.min(ursoY, canvas.height - ursoSize);
+            }
+
+            // Reposiciona os hamburguers proporcionalmente dentro do canvas
+            if (hamburguers.length === 0) {
+                // Cria novos hamburguers
+                for (let i = 0; i < 15; i++) {
+                    hamburguers.push({
+                        x: Math.random() * (canvas.width - hamburguerSize * 2) + hamburguerSize,
+                        y: Math.random() * (canvas.height - hamburguerSize * 3) + hamburguerSize * 1.5
+                    });
+                }
+            } else {
+                // Ajusta os hamburguers já existentes para dentro do canvas após resize
+                hamburguers = hamburguers.map(h => ({
+                    x: Math.min(h.x, canvas.width - hamburguerSize),
+                    y: Math.min(h.y, canvas.height - hamburguerSize)
+                }));
+            }
         }
+
+        resize(); // chama a primeira vez
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -129,6 +166,10 @@
                 return !colide;
             });
             if (hamburguers.length === 0) vitoria = true;
+
+            // Limita urso para não sair da tela
+            ursoX = Math.max(0, Math.min(ursoX, canvas.width - ursoSize));
+            ursoY = Math.max(0, Math.min(ursoY, canvas.height - ursoSize));
         }
 
         function loop() {
@@ -151,6 +192,11 @@
         document.getElementById("down").addEventListener("click", () => ursoY += velocidade * 5);
         document.getElementById("left").addEventListener("click", () => ursoX -= velocidade * 5);
         document.getElementById("right").addEventListener("click", () => ursoX += velocidade * 5);
+
+        // Atualiza o canvas e posições quando a janela for redimensionada
+        window.addEventListener("resize", () => {
+            resize();
+        });
     </script>
 </body>
 </html>
