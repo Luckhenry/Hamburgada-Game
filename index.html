@@ -17,12 +17,14 @@
         h2 { margin: 5px 0 15px; font-size: 1em; }
 
         canvas {
+            width: 100vw;   /* 100% da largura da viewport */
+            height: 70vh;   /* 70% da altura da viewport */
+            max-width: 800px;
+            max-height: 600px;
             display: block;
             margin: 0 auto;
             background: #001b44;
             border: 2px solid white;
-            max-width: 100%;
-            height: auto;
         }
 
         /* Controles para celular */
@@ -74,21 +76,17 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        // Tamanhos proporcionais em relação ao canvas
-        const ursoSizeRatio = 0.1;        // Urso com 10% da largura do canvas
-        const hamburguerSizeRatio = 0.04; // Hambúrguer 4% da largura do canvas
-
-        let ursoSize, hamburguerSize;
+        // Variáveis globais
+        let ursoSize = 80;
         let ursoX, ursoY;
-        const velocidadeBase = 5;  // base de velocidade em pixels (ajustado depois)
-
-        let velocidade;            // velocidade ajustada após resize
+        let velocidade = 5;
+        let hamburguerSize = 30;
         let hamburguers = [];
         let vitoria = false;
 
         // Imagens
         const ursoImg = new Image();
-        ursoImg.src = "Lucasimg2.png";
+        ursoImg.src = "Lucasimg2.png"; // coloque a imagem no mesmo diretório
 
         const hamburguerImg = new Image();
         hamburguerImg.src = "hamburguerimg.png";
@@ -96,49 +94,49 @@
         const vagalumeImg = new Image();
         vagalumeImg.src = "vagalumeimg.png";
 
-        // Função para redimensionar canvas e recalcular tudo
+        // Função para ajustar o tamanho real do canvas conforme o CSS e criar/reajustar elementos
         function resize() {
-            // Ajusta o tamanho do canvas, limitando a um máximo de 800x600, ou ao tamanho da janela
-            canvas.width = window.innerWidth > 800 ? 800 : window.innerWidth - 20;
-            canvas.height = window.innerHeight > 600 ? 600 : window.innerHeight - 150;
+            // Usa o tamanho real do canvas do CSS (em pixels)
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
 
-            // Atualiza tamanhos relativos
-            ursoSize = canvas.width * ursoSizeRatio;
-            hamburguerSize = canvas.width * hamburguerSizeRatio;
+            // Ajusta o tamanho do canvas para o tamanho exibido no CSS
+            canvas.width = width;
+            canvas.height = height;
 
-            // Ajusta velocidade proporcional ao tamanho do urso (para parecer igual em qualquer tela)
-            velocidade = Math.max(3, ursoSize * 0.06); // um valor proporcional mas com mínimo de 3
+            // Ajusta tamanhos proporcionais dos elementos
+            ursoSize = width * 0.1;       // Urso com 10% da largura do canvas
+            hamburguerSize = width * 0.04; // Hambúrguer 4% da largura do canvas
+            velocidade = Math.max(3, ursoSize * 0.06); // velocidade proporcional, mínimo 3
 
-            // Se ursoX e ursoY não existirem (início do jogo), centraliza o urso
+            // Inicializa posição do urso (se não estiver inicializado)
             if (typeof ursoX === "undefined" || typeof ursoY === "undefined") {
-                ursoX = canvas.width / 2 - ursoSize / 2;
-                ursoY = canvas.height / 2 - ursoSize / 2;
+                ursoX = width / 2 - ursoSize / 2;
+                ursoY = height / 2 - ursoSize / 2;
             } else {
-                // Garante que o urso não fique fora da tela após resize
-                ursoX = Math.min(ursoX, canvas.width - ursoSize);
-                ursoY = Math.min(ursoY, canvas.height - ursoSize);
+                // Limita o urso para não sair da tela
+                ursoX = Math.min(ursoX, width - ursoSize);
+                ursoY = Math.min(ursoY, height - ursoSize);
             }
 
-            // Reposiciona os hamburguers proporcionalmente dentro do canvas
+            // Se os hamburguers não existirem, cria com margens
             if (hamburguers.length === 0) {
-                // Cria novos hamburguers
                 for (let i = 0; i < 15; i++) {
                     hamburguers.push({
-                        x: Math.random() * (canvas.width - hamburguerSize * 2) + hamburguerSize,
-                        y: Math.random() * (canvas.height - hamburguerSize * 3) + hamburguerSize * 1.5
+                        x: Math.random() * (width - hamburguerSize * 2) + hamburguerSize,
+                        y: Math.random() * (height - hamburguerSize * 3) + hamburguerSize * 1.5
                     });
                 }
             } else {
-                // Ajusta os hamburguers já existentes para dentro do canvas após resize
+                // Ajusta a posição dos hamburguers existentes para não saírem da tela
                 hamburguers = hamburguers.map(h => ({
-                    x: Math.min(h.x, canvas.width - hamburguerSize),
-                    y: Math.min(h.y, canvas.height - hamburguerSize)
+                    x: Math.min(h.x, width - hamburguerSize),
+                    y: Math.min(h.y, height - hamburguerSize)
                 }));
             }
         }
 
-        resize(); // chama a primeira vez
-
+        // Desenhar tudo
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -157,6 +155,7 @@
             }
         }
 
+        // Atualiza posições e lógica
         function update() {
             hamburguers = hamburguers.filter(h => {
                 const colide = ursoX < h.x + hamburguerSize &&
@@ -167,17 +166,17 @@
             });
             if (hamburguers.length === 0) vitoria = true;
 
-            // Limita urso para não sair da tela
+            // Limita o urso dentro do canvas
             ursoX = Math.max(0, Math.min(ursoX, canvas.width - ursoSize));
             ursoY = Math.max(0, Math.min(ursoY, canvas.height - ursoSize));
         }
 
+        // Loop do jogo
         function loop() {
             update();
             draw();
             requestAnimationFrame(loop);
         }
-        loop();
 
         // Controles pelo teclado
         window.addEventListener("keydown", (e) => {
@@ -193,10 +192,14 @@
         document.getElementById("left").addEventListener("click", () => ursoX -= velocidade * 5);
         document.getElementById("right").addEventListener("click", () => ursoX += velocidade * 5);
 
-        // Atualiza o canvas e posições quando a janela for redimensionada
+        // Evento resize para ajustar canvas e elementos
         window.addEventListener("resize", () => {
             resize();
         });
+
+        // Inicializa
+        resize();
+        loop();
     </script>
 </body>
 </html>
