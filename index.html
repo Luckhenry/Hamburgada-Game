@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Defesa Combo</title>
     <style>
-        /* Remove margens e garante que o body ocupe 100% da tela */
         html, body {
             margin: 0;
             padding: 0;
             height: 100%;
-            overflow: hidden; /* 🔥 Impede scroll */
+            overflow: hidden; /* Sem scroll */
             background-color: #001b44;
             color: white;
             font-family: Arial, sans-serif;
@@ -37,8 +36,8 @@
 
         canvas {
             flex-shrink: 0;
-            width: 100vw;   /* Canvas ocupa largura total */
-            height: 60vh;   /* Canvas ocupa 60% da tela */
+            width: 100vw;
+            height: 70vh; /* Canvas ocupa 70% da altura */
             max-width: 800px;
             max-height: 600px;
             background: #001b44;
@@ -46,15 +45,17 @@
             display: block;
         }
 
-        /* Controles para celular */
+        /* Controles fixos para celular */
         #controls {
-            position: relative;
-            width: 100%;
+            position: fixed; /* 🔥 Agora os controles ficam flutuantes */
+            bottom: 10px;    /* Sempre 10px acima do rodapé */
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 10px;
-            margin-top: 5px;
+            z-index: 10;
         }
 
         #controls button {
@@ -81,7 +82,7 @@
     <h2>Movimente o Tio Julho (L3) para comer todos os hambúrgueres</h2>
     <canvas id="gameCanvas"></canvas>
 
-    <!-- Controles no celular -->
+    <!-- Controles fixos -->
     <div id="controls">
         <button id="up">▲</button>
         <div>
@@ -102,7 +103,6 @@
         let hamburguers = [];
         let vitoria = false;
 
-        // Imagens
         const ursoImg = new Image();
         ursoImg.src = "Lucasimg2.png";
         const hamburguerImg = new Image();
@@ -110,7 +110,6 @@
         const vagalumeImg = new Image();
         vagalumeImg.src = "vagalumeimg.png";
 
-        // Função de ajuste de tela e elementos
         function resize() {
             canvas.width = canvas.clientWidth;
             canvas.height = canvas.clientHeight;
