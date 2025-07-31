@@ -34,10 +34,11 @@
             text-align: center;
         }
 
+        /* 🔥 Canvas agora ocupa só 60% da tela para não ficar sob os controles */
         canvas {
             flex-shrink: 0;
             width: 100vw;
-            height: 70vh; /* Canvas ocupa 70% da altura */
+            height: 60vh;
             max-width: 800px;
             max-height: 600px;
             background: #001b44;
@@ -47,8 +48,8 @@
 
         /* Controles fixos para celular */
         #controls {
-            position: fixed; /* 🔥 Agora os controles ficam flutuantes */
-            bottom: 10px;    /* Sempre 10px acima do rodapé */
+            position: fixed;
+            bottom: 10px; /* Ficam acima do rodapé */
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -71,7 +72,6 @@
 
         #controls div { display: flex; gap: 10px; }
 
-        /* Esconde controles no PC */
         @media (min-width: 768px) {
             #controls { display: none; }
         }
@@ -82,7 +82,6 @@
     <h2>Movimente o Tio Julho (L3) para comer todos os hambúrgueres</h2>
     <canvas id="gameCanvas"></canvas>
 
-    <!-- Controles fixos -->
     <div id="controls">
         <button id="up">▲</button>
         <div>
@@ -130,7 +129,7 @@
                 for (let i = 0; i < 15; i++) {
                     hamburguers.push({
                         x: Math.random() * (canvas.width - hamburguerSize * 2) + hamburguerSize,
-                        y: Math.random() * (canvas.height - hamburguerSize * 3) + hamburguerSize * 1.5
+                        y: Math.random() * (canvas.height - hamburguerSize * 2) + hamburguerSize
                     });
                 }
             } else {
